@@ -1,0 +1,120 @@
+%% bare_conf.tex
+%% V1.4b
+%% 2015/08/26
+%% by Michael Shell
+%% http://www.ieee.org/
+
+\documentclass[conference]{IEEEtran}
+\input{00_setup/01_packages}
+
+% *** Do not adjust lengths that control margins, column widths, etc. ***
+% *** Do not use packages that alter fonts (such as pslatex).         ***
+% There should be no need to do such things with IEEEtran.cls V1.6 and later.
+% (Unless specifically asked to do so by the journal or conference you plan
+% to submit to, of course. )
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+\begin{document}
+% paper title
+% Titles are generally capitalized except for words such as a, an, and, as,
+% at, but, by, for, in, nor, of, on, or, the, to and up, which are usually
+% not capitalized unless they are the first or last word of the title.
+% Linebreaks \\ can be used within to get better formatting as desired.
+% Do not put math or special symbols in the title.
+\title{Bare Demo of IEEEtran.cls\\ for IEEE Conferences}
+
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\author{\IEEEauthorblockN{Moritz Hesche}
+    \IEEEauthorblockA{
+        Karlsruhe Institute of Technology \\
+        Karlsruhe, Germany \\
+        Email: mo.hesche@gmail.com}
+}
+% \and
+% \IEEEauthorblockN{Homer Simpson}
+% \IEEEauthorblockA{Twentieth Century Fox\\
+% Springfield, USA\\
+% Email: homer@thesimpsons.com}
+% \and
+% \IEEEauthorblockN{James Kirk\\ and Montgomery Scott}
+% \IEEEauthorblockA{Starfleet Academy\\
+% San Francisco, California 96678--2391\\
+% Telephone: (800) 555--1212\\
+% Fax: (888) 555--1212}}
+
+% conference papers do not typically use \thanks and this command
+% is locked out in conference mode. If really needed, such as for
+% the acknowledgment of grants, issue a \IEEEoverridecommandlockouts
+% after \documentclass
+
+% make the title area
+\maketitle
+
+% As a general rule, do not put math, special symbols or citations
+% in the abstract
+\begin{abstract}
+    \input{01_texfiles/00_abstract}
+\end{abstract}
+
+% For peerreview papers, this IEEEtran command inserts a page break and
+% creates the second title. It will be ignored for other modes.
+\IEEEpeerreviewmaketitle
+
+\section{Introduction}
+\input{01_texfiles/01_introduction}
+
+\section{Benchmark Methology}
+\subsection{Software Framework}
+\subsection{Metrics}
+
+\section{Benchmarked Algorithms}
+\subsection{GrConvNet}
+\subsection{ContactGraspNet}
+\subsection{GGCNN}
+\subsection{Comparison}
+
+\section{Limitations and Differences}
+\subsection{GrConvNet}
+\subsection{ContactGraspNet}
+\subsection{GGCNN}
+
+\section{Necessary Adaptions}
+\subsection{GrConvNet}
+\subsection{ContactGraspNet}
+\subsection{GGCNN}
+
+\section{Results}
+\subsection{GrConvNet}
+\subsection{ContactGraspNet}
+\subsection{GGCNN}
+
+\section{Error Analysis}
+\subsection{GrConvNet}
+\subsection{ContactGraspNet}
+\subsection{GGCNN}
+
+\section{Conclusion}
+% \input{0?_conclusion}
+
+% conference papers do not normally have an appendix
+
+\section*{Acknowledgment}
+% \input{0?_acknowledgments}
+
+% trigger a \newpage just before the given reference
+% number - used to balance the columns on the last page
+% adjust value as needed - may need to be readjusted if
+% the document is modified later
+%\IEEEtriggeratref{8}
+% The "triggered" command can be changed if desired:
+%\IEEEtriggercmd{\enlargethispage{-5in}}
+
+\bibliographystyle{IEEEtran}
+\bibliography{99_bibliography/bibliography}
+
+\end{document}
