@@ -1,0 +1,18 @@
+A more practical aspect in the selection of the benchmarked algorithms was also the availability of the source code.
+
+\subsection{GrConvNet}
+The GrConvNet algorithm described in \cite{} is deep learning based algorithm which processes an rgb and a depth image to predict multiple planar grasp candidates.
+After a preprocessing step, the algorithm uses a convolutional neural network to predict a set of mono-images to get an distribution over the possible grasp candidates in the image space.
+The resulting images contain a \textit{quality image}, \textit{angle image} and \textit{width image}.
+The grasp representaion used in \cite{} is ginve by : ...
+This results in a grasp candidate for each pixel in the images returned by the network.
+The grasp candidates are then filtered by a non-maximum suppression algorithm to remove grasp candidates which are too close to each other.
+The network architecture utilizes batch normalization layers, ReLU activation functions and residual connections to achieve better performance.
+The training of the netowork was done with different datasets, including \dots
+However, in the analysis of the
+\subsection{ContactGraspNet}
+The ContactGraspNet algorithm is an
+Due to it's pointcloud based anatomy the algorithm was not trained on image based datasets.
+Instead they utilized ACRONYM dataset and the Shapenet dataset
+\subsection{GGCNN}
+\subsection{Comparison}
