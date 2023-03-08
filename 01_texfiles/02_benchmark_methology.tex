@@ -1,39 +1,79 @@
 In this section we describe the methodology used to evaluate the performance of the compared grasp algorithms.
-In the first section we focus on the technical aspects of the software framework used to evaluate the algorithms.
+First we focus on the technical aspects of the software framework used to evaluate the algorithms.
 This includes a framework to handle the different grasp representations returned by the different algorithms.
-The second section describes how the performance of the algorithms is measured and how the results should be interpreted.
-% The methodology is divided into two parts: the software framework and the metrics. 
-% The software framework is described in Section~\ref{sec:framework} and the metrics are described in Section~\ref{sec:metrics}.
+The second section describes how we quntify the performance of a algorithm is measured in the used benchmark setting and how the results should be interpreted.
+Lastly a short description of the used objects is given.
 
-\subsection{Software Framework}
-As the different algorithm all use different grasp representations, we developed a software framework which utilizes a ROS service in order to obtain
-a unified grasp representaion which can than be used to execute the grasp in a simulated environment.
-The ROS services for each benchmarked algorithm are all
+\subsection{Software Framework Components}
+% Motivation for the framework: different grasp representations, different input data
+As the different algorithm all use different grasp representations and require different different input data, we integrated the them into
+a software framework which offers a clean interfact between the executing environment and the grasp algorithm itself.
+Another element of the used benchmarking suite is a dedicated benchmark runner. This allows for the execution of consistent and reproducable benchmark runs.
 
+% Desccription of the ROS Service interface: input, output, wrapper, integration with common representation
+The interface between executing environement and executing environement is implemented as a ROS service which can be called from an arbitrary environment.
+An clearly defined set of observation can be passed to the service call and can be used by the algorithm to generate a grasp.
+The observation currently include the following data:
+\begin{itemize}
+    \item RGB image of the scene
+    \item Depth image of the scene
+    \item Pointcloud of the scene
+    \item Camera pose
+    \item Camera intrinsics
+    \item Number of grasps to be generated
+\end{itemize}
+After the execcution of an grasping algorithm the service returns unified grasp representation which is used to execute the grasp in a simulated or real environment.
+Independent of the grasp representation used by the algorithm, the service always returns a list of grasps where a grasp is defined by an 6D-Pose, a gripper width and
+an algorithm agnostic estimated performance score of the grasp.
+
+% ROS service as wrapper
+For each benchmarked algorithm a ROS service was implemented which are all contained within a single repository to allow for easy integration of new algorithms.
+Each service acts as a wrapper around the original implementaion of the algorithms.
+This especially includes proper conversion of the described observation data into the input format required by the algorithm as well as the conversion of
+the algorithm specific grasp representation to the unified grasp representation.
+In section \ref{sec:benchmarking} we will discuss the necessary conversion and adaptions of the data in more detail.
+
+% Simulation environment: description, limitations
 A main challenge in benchmarking different grasp algorithms is to find a setting which allows to offer an challenging environment for the algorithms while
-still being able to evaluate the algorithms in a reasonable amount of time and also.
-We executed the grasps in a simulation environment which is based on mujoco \cite{}.
-The simulation environment consists of a table where the objects are placed on and a robot arm.
-This environement is displayed in Figure~\ref{fig:env}.
+still being able to evaluate the algorithms in a reasonable amount of time.
+Our benchmark is therefore based on a simulation environment which is based on the mujoco physics engine \cite{}.
+However, there is no reason why the described benchmarking framework is limited to a simulation environment.
+The simulation environment consists of a table where the objects are placed on and a robot arm and is displayed in Figure~\ref{fig:env}.
 
 
-
-\subsection{Metrics}
-A key limitation in robotic grasping are the physical limitations of the robot gripper.
-As an a priori assumption we therefore limited the evaluation of the algorithm to objects which can be fitted between the fingers of the gripper.
-This is a reasonable assumption as the gripper is the only part of the robot which is in direct contact with the object.
-For all the remaining objects in our test dataset we attempted 50 grasps for each object and algorithm.
-In each attempt we randomly placed the object on a flat table and randomly rotated the object.
-However, we did not allow the object to be placed on the table in a way that the object is not fully visible to the camera or be outside the range of the robot.
-The success of a grasp is defined as the gripper being able to move the object to a predefined position so that the center of the object is no more than
-?? away from the center of the gripper.
-
-
-\subsection{Used Datasets}
+\subsection{Used Objects}
+% YCB dataset: desciption, why used
 For benchmarking the different algorithms we used the used the YCB dataset \cite{}.
-This dataset contains ?? different household objects and is commonly used for benchmarking grasp algorithms.
-The datsest contains object of different sizes and shapes.
+This dataset contains ?? different household objects of different sizes and shapes and is commonly used for benchmarking grasp algorithms.
 This covers fully convex objects like cubes or spheres but also objects with complex geometries.
 While the most deep learning based grasping algorithms are trained on a much larger varieties of objects, the YCB dataset is a good starting point for
 benchmarking grasp algorithms with a reasonable computational cost.
-The variety of the dataset object still allows for a represetative result.
+The variety of the dataset object still allows for a representative result.
+
+% restriction on the objects
+A key limitation in robotic grasping are the physical limitations of the robot gripper.
+As an a priori assumption we therefore limited the evaluation of the algorithms to objects which can be fitted between the fingers of the gripper.
+This is a reasonable assumption as the gripper is the only part of the robot which is in direct contact with the object.
+% For all the remaining objects in our test dataset we attempted 50 grasps for each object and algorithm.
+
+
+\subsection{Metrics}
+In each attempt we randomly placed the object on a flat table and randomly rotated the object.
+However, we did not allow the object to be placed on the table in a way that the object is not fully visible to the camera or be outside the range of the robot.
+After setting up the scene the grasp is executed.
+
+% Grasping procedure
+The execution of a grasp consists of a sequence of steps.
+First the robot is moved to constant home position. This position is selected in away that the robot is not covering any object geometries from the camera viewpoint.
+After the robot reached it's home position the observation data is collected and the ROS Service is called.
+After receiving the grasp proposals the robot is moved to a hover position and oriented as defined by the received grasp message.
+The hover position corresponds to the actual grasp position but translated along the grasp axis by a fixed distance.
+This approach allows to reduce errors occuring from illegal approaching to the grasp object.
+The actual grasp is then executed by opening the gripper, moving linearly to the target position, closing the position and moving back to the hover position.
+In last step of the executed sequence the gripper is moved back to the home position.
+
+The success of a grasp is defined as the gripper being able to move the object to a predefined position so that the center of the object is no more than
+?? away from the center of the gripper.
+
+We repeat this procedure for each object in the dataset and for each algorithm 50 times.
+Using multiple

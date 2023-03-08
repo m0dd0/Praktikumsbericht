@@ -3,6 +3,16 @@ the pre- and postprocessing steps so that they fit the data obtained by the simu
 
 The adaptions made to the algorithms are described in the following sections.
 
+% Formulas for image <-> world transformation
+
 \subsection{GrConvNet}
+
+
 \subsection{ContactGraspNet}
+While directly offering a 6D grasp representation, there is still some conversion of the Grasp pose necessary in order to obtain a correct grasp in the simulation environement.
+This mainly arises from different end effector coordinate systems used by the simulation and the algorithm.
+Both representation define the z-axis as the axis along which the object is attempted in order to be grasped.
+However, the simulation uses the y-axis as the axis along which the object is grasped while the algorithm uses the x-axis.
+This results in the following conversion of the grasp orientation matrix beeing necessary:
+
 \subsection{GGCNN}
