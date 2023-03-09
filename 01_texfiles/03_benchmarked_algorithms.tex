@@ -1,21 +1,73 @@
-A more practical aspect in the selection of the benchmarked algorithms was also the availability of the source code.
+We selected 3 different algorithms for benchmareking.
+While the benchmark focusses on deep learning based grasping algorithm the algorithms were selected so that different approaches to the task of object grasping
+are represented.
+Two of the benchmarked algorithms use image based inputs and return planar grasps.
+The third algorithm uses pointcloud based inputs and returns 6D grasps.
+This selection might allow to get an deeper understanding of the strengths and weaknesses of the different approaches and input modalities used.
+A more practical aspect in the selection of the benchmarked algorithms was the availability of an publicly available source code.
+
+% TODO reference
+To allow for a better understanding of the results which we will discuss in \ref{} we will give a short description over the benchmarked
+algorithms in the following subsections focussing on the algorithmic approaches.
+Results and error analysis will be discussed in \ref{}.
+% -- done
+
 
 \subsection{GrConvNet}
-The GrConvNet algorithm described in \cite{} is deep learning based algorithm which processes an rgb and a depth image to predict multiple planar grasp candidates.
-After a preprocessing step, the algorithm uses a convolutional neural network to predict a set of mono-images to get an distribution over the possible grasp candidates in the image space.
-The resulting images contain a \textit{quality image}, \textit{angle image} and \textit{width image}.
-The grasp representaion used in \cite{} is ginve by : ...
-This results in a grasp candidate for each pixel in the images returned by the network.
-The grasp candidates are then filtered by a non-maximum suppression algorithm to remove grasp candidates which are too close to each other.
-The network architecture utilizes batch normalization layers, ReLU activation functions and residual connections to achieve better performance.
-The training of the netowork was done with different datasets, including \dots
-However, in the analysis of the
+% general
+The GrConvNet algorithm described in \cite{kumra2020antipodal} processes an 4-channel RGBD image of the scene with a deep convolutional network to predict multiple
+planar grasp candidates.
+% network architecture
+The network architecture consists of a set of convolutional layers followed by a symmetrical set of transposed convolutional layers.
+To achieve better performance the used network architecture utilizes batch normalization layers, ReLU activation functions and residual connections.
+% input and output
+Due to the symmetrical architecture the first dimensions of the network output correspond to the dimensions of the input image.
+As a consequence the output can be interpreted as a distribution of grasp candidates in the image space.
+Each grasp in the image space is represented by it's pixel coordinate, a grasp width $W$, a grasp angle $\Theta_i$ referencing the image u-axis and a grasp quality value $Q$:
+$G_i = (u,v,\Theta_i, W_i, Q)$
+% postprocessing
+To obtain the elite grasp candidates from the grasp distribution non-maximum suppression algorithm is used to filter grasp candidates which are below a predefined
+quality value or are too close to another but better grasp candidate.
+In an upfollowing postprocessing stage the grasp representation of the elite grasp candidates in the image space are transformed to the world space using the
+cameras extrinsic and intrinsic parameters.
+% TODO: maybe visulaization here
+% training
+% TODO cite
+The training of the network was done disjunct on the Cornell \cite{}, Dexnet \cite{} and Jacquard \cite{} dataset. To the best of our knowledge no training was executed on a combination of the datasets.
+As an training objective the sum of the log-likelihood of the elite grasp candidates being close to the ground gruth grasp candidates was used.
+For a training dataset with $n$ images and $m$ grasp candidates this objective can be expressed as:
+$L = \sum_{i=1}^n \sum_{j=1}^m \log p(G_j|I_i)$
+where $p(G_j|I_i)$ is the probability of the $j$th grasp candidate in the $i$th image being similar enough to the ground truth grasp candidate.
+The simmilarity of a predicted grasp to the ground truth grasp is determined by the intersection over union of the grap rectangles and the differenc in their grasp angles.
+Due to empirical analysis of the performance Huber Loss was selected as loss function.
+% -- done
+
+
 \subsection{ContactGraspNet}
-The ContactGraspNet algorithm is an
-Due to it's pointcloud based anatomy the algorithm was not trained on image based datasets.
+% general
+In \cite{sundermeyer2021contact} the point cloud based \textit{ContactGraspNet} algorithm is presented which can be viewed as a successor of the method described in \cite{}.
+The algorithm is based on the idea that in a partially observable environment, the search space for grasp candidates can be limited to the set of grasps which are
+in contact with one of the points in the observed pointcloud.
+% network architecture
+%  TODO
+% input and output
+In contrast to \texit{GrConvNet} and \texit{GGCNN} the \textit{ContactGraspNet} is not limited to grasps parallel to a pedefined surface.
+Instead the algorithm can be used to gather grasps with an arbitrary orientation.
+Consequently a grasp is represented by a 6D pose consisting of a position and an orientation:
+$$ G = (R_g, t_g) = $$
+Each observed point can be used as an anchor point for a grasp.
+A visulization of this grasp representation in our simulation environment is shown in \ref{}.
+The network architecture described uses the full pointcloud to obtain a number of grasp candidates for all objects present in the pointcloud.
+However, the presented implementation in \ref{} also adds the ability to filter the grasp candidate based on a provided segmentation.
+
+
+% training
+Due to it's pointcloud based anatomy the underlying network wass
 Instead they utilized ACRONYM dataset and the Shapenet dataset
-ContactGraspNet is also more flexible in its grasp representaion. Each observed point can be used as an anchor point for a grasp.
+In contrast
 The grasp axis can be oriented in arbitrary direction
+
+
 \subsection{GGCNN}
 Siimilarly to the \textit{GrConvNet} algorithm the \textit{GGCNN} algorithm based on image inputs and returns image based grasp representations.
 \subsection{Comparison}
