@@ -1,17 +1,15 @@
+% Introductions, scopr of adaptions
+While all of the bencharked algorithm claimed to achieve a success rate of over 90\% in their respective settings, a number of adaptions were necessary to
+make them work in our simulation environment at all and reduce the influences caused by the different setting.
+In general we tried to adapt the algorithm itself as less as possible to keep the results as comparable as possible.
+We never retrained the underlying networks on our data or made any othes algorithmic changed to the bencharked algorithms.
+However, we had to make some adaptions to the pre- and postprocessing steps of the algorithms to make them work with the benchmarking framework described in \ref{}.
+
 % Packaging
+Another asect of the adaptions was the packaging of the benchmarked algorithms.
 None of the benchmarked algorithms were implemented to work as standalone applications.
-To use the implementation in conjuction with the benchmarking framework described in \ref{} we had to refactor the code in order to package it as a standalone application.
-Also the dependy management of the benchmarked algorithms was not optimal.
-To solve
-
-Apart from these general adaption there were necaseveral algorithm
-
-In order to use the implementation of the benchmarked algorithms in conjuction with the benchmarking framework described in \ref{} we had to adapt
-the pre- and postprocessing steps so that they fit the data obtained by the simulation.
-
-In general we tried to adapt the algorithm as less as possible
-
-The adaptions made to the algorithms are described in the following sections.
+To use the implementation from within a running ROS serivce we had to refactor the code in order to package it as a standalone application.
+Also the dependency management of the benchmarked algorithms needed to be adapted.
 
 % Formulas for image <-> world transformation
 
@@ -36,6 +34,9 @@ The used conversion in the referenced implementation were only valid for the edg
 To create a more general solution we first transformed the used grasp representation explained in section \ref{} to a more general representation using homogenous coordinates.
 After this transformation we can use the following formulas to transform the grasp representation from image space to world space:
 % TODO: add formulas
+
+In the \cite{kumra2020antipodal} paper and also in the accompanying implementation no information were provide on how any information on how the grasp height was estimated.
+
 
 \subsection{ContactGraspNet}
 During development we observed significant difference in the grasp quality depending on the nuber of points being contained in the used pointcloud.

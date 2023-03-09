@@ -17,7 +17,7 @@ Results and error analysis will be discussed in \ref{}.
 % general
 The GrConvNet algorithm described in \cite{kumra2020antipodal} processes an 4-channel RGBD image of the scene with a deep convolutional network to predict multiple
 planar grasp candidates.
-% network architecture
+% architecture
 The network architecture consists of a set of convolutional layers followed by a symmetrical set of transposed convolutional layers.
 To achieve better performance the used network architecture utilizes batch normalization layers, ReLU activation functions and residual connections.
 % input and output
@@ -49,9 +49,16 @@ In \cite{sundermeyer2021contact} the point cloud based \textit{ContactGraspNet} 
 The algorithm is based on the idea that in a partially observable environment, the search space for grasp candidates can be limited to the set of grasps which are
 in contact with one of the points in the observed pointcloud.
 % network architecture
+For each point in the give pointcloud the network predics whether this point is suitable as a contact point for grasping, the width of a grasp and the the approach vector a and the grasp axis b.
+This information is used to generate a set of 6D grasp representation.
+% network architecture
+The presented network architecture is a adaption of the Pointnet++ architecture \cite{qi2017pointnet++} which is used as a feauture extractor for pointcloud.
+To reduce computational complexity the network predicts.
+Note that this reduction only refers to the decoding part of the network. The network still processes the full pointcloud in the encoding layers in order to
+utilize the spatial strucures consisting of neighboring points.
 %  TODO
 % input and output
-In contrast to \texit{GrConvNet} and \texit{GGCNN} the \textit{ContactGraspNet} is not limited to grasps parallel to a pedefined surface.
+In contrast to \textit{GrConvNet} and \textit{GGCNN} the \textit{ContactGraspNet} is not limited to grasps parallel to a pedefined surface.
 Instead the algorithm can be used to gather grasps with an arbitrary orientation.
 Consequently a grasp is represented by a 6D pose consisting of a position and an orientation:
 $$ G = (R_g, t_g) = $$
@@ -62,10 +69,15 @@ However, the presented implementation in \ref{} also adds the ability to filter 
 
 
 % training
-Due to it's pointcloud based anatomy the underlying network wass
+Due to it's pointcloud and the assumption that we can only a single depth image to capture a partial pointcloud of the environment based anatomy the traini
 Instead they utilized ACRONYM dataset and the Shapenet dataset
-In contrast
-The grasp axis can be oriented in arbitrary direction
+The training procedure can be summarized as follows:
+\begin{enumerate}
+\item Generating a simulated scene with objects (and annotated grasps) of from the ACRONYM dataset in random stable poses.
+\item Filter grasps which collide with oder objects in the scene
+\item Create a pointcloud from a single depth image of the scene
+\item The network is trained on the Shapenet dataset to predict the grasp pose.
+% The grasp axis can be oriented in arbitrary direction
 
 
 \subsection{GGCNN}

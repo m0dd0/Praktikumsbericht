@@ -1,0 +1,27 @@
+\subsection{GrConvNet}
+% grasp height
+As described in \ref{} we had to use a coarse approximation of the grasp height in order to generate grasp candidates for the \textit{GrConvNet} algorithm.
+This approximation however is error prone to object with a non-planar surface.
+
+% overfitting
+Abother indicator that \textit{GrConvNet} might suffer from an overfitting problem is demonstrated in \ref{}.
+For a plain
+
+% small gripper width
+A factor
+We observed many cases were the grasp axis seemed to be generated with a proper orientation but the grasp center point was not placed correctly.
+Especialy in cases where there is not much tolerance for the grasp center point due to the object size along the grasp axis limited maximum gripper.
+It must be noted that this is an robot specific issue and might not occur for end effectors which offer a larger maximum gripper width.
+However, in cluttered environements this can lead to a significant decrease in performance as a offseted grasp center point can lead to a collision
+with other objects in the scene.
+
+\subsection{ContactGraspNet}
+In some cases the \textit{ContactGraspNet} algorithm wasn't able to generate any grasp candidates for a given object.
+We assume that whic was caused by filtering executed in the \textit{ContactGraspNet} algorithm.
+This means that underlying network was able to generate grasp candidates but they were filtered due to the applied constraints like collision avoidance
+and object segmentation.
+
+
+\subsection{GGCNN}
+Similar to the \texit{GrConvNet} the \textit{GGCNN} algorithm also had problems in estimating the grasp height correctly.
+In many of the observed cases the generated grasps
