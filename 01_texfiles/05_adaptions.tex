@@ -1,50 +1,106 @@
 % Introductions, scopr of adaptions
-While all of the bencharked algorithm claimed to achieve a success rate of over 90\% in their respective settings, a number of adaptions were necessary to
+While all of the bencharked algorithm claimed to achieve a success rate of over 90\% in their respective evaluation settings, a number of adaptions were necessary to
 make them work in our simulation environment at all and reduce the influences caused by the different setting.
 In general we tried to adapt the algorithm itself as less as possible to keep the results as comparable as possible.
 We never retrained the underlying networks on our data or made any othes algorithmic changed to the bencharked algorithms.
 However, we had to make some adaptions to the pre- and postprocessing steps of the algorithms to make them work with the benchmarking framework described in \ref{}.
+The specific adaptions made to each algorithm are described in the following subsections.
 
 % Packaging
 Another asect of the adaptions was the packaging of the benchmarked algorithms.
 None of the benchmarked algorithms were implemented to work as standalone applications.
 To use the implementation from within a running ROS serivce we had to refactor the code in order to package it as a standalone application.
 Also the dependency management of the benchmarked algorithms needed to be adapted.
+% -- done
 
-% Formulas for image <-> world transformation
 
 \subsection{GrConvNet}
+% general
+
 % Center cropping
-% While analysing the implementation of the paer 
 The preprocessing stage of the GrConvNet implementaion incorporrates a simple center cropping of the input image to the desired input size of $224x224$ pixels.
 This works flawless as long as the object of interest is centered in the image and covers only an area smaller than the cropped image area.
 However, when using simulation data with different camera perspectives, the object of interest is not always centered in the image.
-As a workaround we replaced the center cropping mechanism with a combination of Square cropping and resizing.
+As a workaround we replaced the center cropping mechanism with a combination of square cropping and resizing.
 This approach allows us to obtain the correct input dimension while still keeping the object of interest in the center of the image and also in reasonable size.
+% TODO (refer in) problem due to overfitteing
 
 % segmentation
-We observed that an additional previous segmentation is essential for the GrConvNet algorithm to work properly.
-This comes due to the fact that the dataset the network was trained on contains white background images only.
-Having a multicolored backgoudn with different color gradients in the backgroud therfore leads to the network predicting grasps in the background and not on the target object.
+We observed that an additional previous segmentation is essential for the GrConvNet algorithm to work properly in pur environement.
+We assume that this comes due to the fact that the dataset the network was trained on a dataset containing white background images only and no data augmentation
+was done to counteract for this imbalance.
+Having a multicolored background with different color gradients in the backgroud therfore leads to the network predicting grasps in the background and not on the target object.
 Addin an object segmentation layer to the preprocessing of the images resulted in a significant improvement of the grasp quality.
 % which parameter set was used
 
 % conversions to world space
 The used conversion in the referenced implementation were only valid for the edge case in which we can assume that the camera is parallel to the ground plane.
-To create a more general solution we first transformed the used grasp representation explained in section \ref{} to a more general representation using homogenous coordinates.
-After this transformation we can use the following formulas to transform the grasp representation from image space to world space:
-% TODO: add formulas
-
+To create a more general solution we first transformed the used image based grasp representation explained in section \ref{} to a more general representation
+using a end effector rotation matrix $R_g^I$ in image space instead of a single angle $\alpha$.
+Since the grasps are restricted to be parallel to the ground plane, we can write the orientation and center point in image space as follows:
+$$ R_g^I =  \begin{bmatrix}
+        - \sin\alpha & \cos\alpha & 0  \\
+        \cos\alpha   & \sin\alpha & 0  \\
+        0            & 0          & -1
+    \end{bmatrix}
+$$
+This transformation also incorporates the fact that in our simulated environmend the grasp axis is defined along the y-axis of the end effector coordinate system.
 In the \cite{kumra2020antipodal} paper and also in the accompanying implementation no information were provide on how any information on how the grasp height was estimated.
+We made therefore the additional assumption that the height of the grasp can estimated as the height at the predicted grasp point offsetted by a constant, gripper specific value.
+In consequence the grasp center point in camera coordinates can be calculated as follows from the grasp center coordinates $u$ and $v$ in camera space and the estimated grasp height $p_gz^C$:
+$$ t_g^C = \begin{pmatrix}
+        (u - cx) * p_cam_z / fx
+        p_cam_y = (p_img_y - cy) * p_cam_z / fy \\
+        (p_img_x - cx) * p_cam_z / fx
+        p_cam_y = (p_img_y - cy) * p_cam_z / fy \\
+        p_gz^C
+    \end{pmatrix} $$ % TODO
+
+As a last step we can use the following formulas to transform the grasp representation from camera space to world space:
+% TODO: add formulas
 
 
 \subsection{ContactGraspNet}
+% number of points as input
 During development we observed significant difference in the grasp quality depending on the nuber of points being contained in the used pointcloud.
+This can be explained by the preprocessing stage of the ContactGraspNet algorithm.
+To reduce the computational complexity of the Pointnet++ inference, the pointcloud is randomly downsampled to 20000 points.
+For pointclouds which are in the order of magnitude of 100000 points, this can results in a significant loss of information as we can not assume anymore that all parts of
+the original pointlcloud are covered by the sampled subset of points.
+The pointcloug generation in our simulation environment is based on depth image. For each pixel in the depth image a point is generated in the pointcloud.
+We can exploit this mechanism to generate a pointcloud with a fixed number of points by simply using a lower resolution of the underlying depth image.
 
-While directly offering a 6D grasp representation, there is still some conversion of the Grasp pose necessary in order to obtain a correct grasp in the simulation environement.
-This mainly arises from different end effector coordinate systems used by the simulation and the algorithm.
+% different segmentation
+The ContactGraspNet algorithm already implements a method for object segmentation.
+This segmentation is uses 3D bounding boxes generated from a 2D segmentation image in order to filter the pointcloud directly.
+In our case an additional previous segmentation was beneficial to the grasp quality.
+We therfore reduced the pointlcoud to the area around the object of interest keeping the local context of the object but suppressing background elements like floor
+or the robot arm.
+We suspect that this was caused by a number of grasps being generated for geometries that are not part of the object of interest.
+As a result less or in some cases no grasps were generated for the object of interest if too much auxiliary geometries were present in the scene.
+
+% coordinate transformations
+While directly offering a 6D grasp representation, there was still a conversion of the grasp pose necessary in order to obtain a correct grasp in the simulation environement.
+This arises from different end effector coordinate systems used by the simulation and the algorithm.
 Both representation define the z-axis as the axis along which the object is attempted in order to be grasped.
 However, the simulation uses the y-axis as the axis along which the object is grasped while the algorithm uses the x-axis.
-This results in the following conversion of the grasp orientation matrix beeing necessary:
+% This results in the following conversion of the grasp orientation matrix beeing necessary:
+The different resulting rotation matrices can be calculated as follows:
+$$ R_g^paper =  \begin{bmatrix}
+        | & |          & | \\
+        b & a \times b & a \\
+        | & |          & |
+    \end{bmatrix}
+$$
+$$
+    \begin{bmatrix}
+        |           & | & | \\
+        -a \times b & b & a \\
+        |           & | & |
+    \end{bmatrix}
+$$
+
+The change of the sign of $a \times b$ is necessary to keep the resulting end effector coordinte system orthogona and clockwise.
+% -- done
 
 \subsection{GGCNN}

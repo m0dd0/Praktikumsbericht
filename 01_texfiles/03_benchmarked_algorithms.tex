@@ -1,15 +1,18 @@
 We selected 3 different algorithms for benchmareking.
-While the benchmark focusses on deep learning based grasping algorithm the algorithms were selected so that different approaches to the task of object grasping
+While we focuss on deep learning based grasping algorithm the algorithms were selected so that different approaches to the task of object grasping
 are represented.
 Two of the benchmarked algorithms use image based inputs and return planar grasps.
 The third algorithm uses pointcloud based inputs and returns 6D grasps.
+As out benchmark focusses on the task of single object grasping our selection was not restricted to algorithms which are able to grasp multiple objects at once.
+However, the \textit{ContactGraspNet} described in section \ref{} is able to perform grasps in cluttered scenes.
 This selection might allow to get an deeper understanding of the strengths and weaknesses of the different approaches and input modalities used.
 A more practical aspect in the selection of the benchmarked algorithms was the availability of an publicly available source code.
+
 
 % TODO reference
 To allow for a better understanding of the results which we will discuss in \ref{} we will give a short description over the benchmarked
 algorithms in the following subsections focussing on the algorithmic approaches.
-Results and error analysis will be discussed in \ref{}.
+Results and error analysis of each individual benchmarked algorithm will be discussed in \ref{}.
 % -- done
 
 
@@ -20,6 +23,7 @@ planar grasp candidates.
 % architecture
 The network architecture consists of a set of convolutional layers followed by a symmetrical set of transposed convolutional layers.
 To achieve better performance the used network architecture utilizes batch normalization layers, ReLU activation functions and residual connections.
+
 % input and output
 Due to the symmetrical architecture the first dimensions of the network output correspond to the dimensions of the input image.
 As a consequence the output can be interpreted as a distribution of grasp candidates in the image space.
@@ -31,6 +35,7 @@ quality value or are too close to another but better grasp candidate.
 In an upfollowing postprocessing stage the grasp representation of the elite grasp candidates in the image space are transformed to the world space using the
 cameras extrinsic and intrinsic parameters.
 % TODO: maybe visulaization here
+
 % training
 % TODO cite
 The training of the network was done disjunct on the Cornell \cite{}, Dexnet \cite{} and Jacquard \cite{} dataset. To the best of our knowledge no training was executed on a combination of the datasets.
@@ -45,41 +50,45 @@ Due to empirical analysis of the performance Huber Loss was selected as loss fun
 
 \subsection{ContactGraspNet}
 % general
-In \cite{sundermeyer2021contact} the point cloud based \textit{ContactGraspNet} algorithm is presented which can be viewed as a successor of the method described in \cite{}.
-The algorithm is based on the idea that in a partially observable environment, the search space for grasp candidates can be limited to the set of grasps which are
+% TODO cite
+In \cite{sundermeyer2021contact} the point cloud based \textit{ContactGraspNet} algorithm is presented which utilizes the \textit{Pointnet++} network prensented in
+\cite{} to predict grasp candidates which are associated to a point in the input pointlcoud.
+The algorithm is based on the idea that in a partially observable environment, the search space for grasp candidates can be limited to the set of grasps which result
 in contact with one of the points in the observed pointcloud.
-% network architecture
-For each point in the give pointcloud the network predics whether this point is suitable as a contact point for grasping, the width of a grasp and the the approach vector a and the grasp axis b.
-This information is used to generate a set of 6D grasp representation.
-% network architecture
-The presented network architecture is a adaption of the Pointnet++ architecture \cite{qi2017pointnet++} which is used as a feauture extractor for pointcloud.
-To reduce computational complexity the network predicts.
-Note that this reduction only refers to the decoding part of the network. The network still processes the full pointcloud in the encoding layers in order to
-utilize the spatial strucures consisting of neighboring points.
-%  TODO
+
 % input and output
 In contrast to \textit{GrConvNet} and \textit{GGCNN} the \textit{ContactGraspNet} is not limited to grasps parallel to a pedefined surface.
-Instead the algorithm can be used to gather grasps with an arbitrary orientation.
-Consequently a grasp is represented by a 6D pose consisting of a position and an orientation:
-$$ G = (R_g, t_g) = $$
-Each observed point can be used as an anchor point for a grasp.
+Instead a grasp is represented by a 6D pose consisting of a position and an orientation:
+$$ G = (R_g, t_g) = $$ % TODO: add equation
+As shown in the equation the grasp 6D grasp representation can be decomposed into a grasp approach vector $a$ and a grasp axis vector $b$.
+The grasp position $t_g$ can be derived from the contact point $c$ and the grasp approach vector $a$ and a width $w$ in the following way:
+$$ t_g = c + w / 2 b $$
 A visulization of this grasp representation in our simulation environment is shown in \ref{}.
-The network architecture described uses the full pointcloud to obtain a number of grasp candidates for all objects present in the pointcloud.
-However, the presented implementation in \ref{} also adds the ability to filter the grasp candidate based on a provided segmentation.
 
+% network architecture
+The described grasp approach vector $a$, the grasp axis vector $b$ the width $w$ and a quality $q$ of the described grasp representation is generated by an adapted
+Pointnet++ network architecture for a subset of possible contact points.
+These information are sufficient to generate the full 6D grasp representation.
+After transforming the points to a higher dimensional embedding space the network generates a global feature vector $f \in \mathbb{R}^1024$ by max pooling over the embedding dimensions.
+Since the max operation is an symmetric the architecture becomes invariant to any permutation of the input points.
+In the common application of Pointnet++ this feature vector is used together with the embedding of the input points to predict a segmentation or classification of the input pointcloud.
+In the case of \textit{ContactGraspNet} 4 heads with two 1D-convolutional layers each are used to predict the elements $(a, b, w, q)$ from the global feature vector
+and the embedding of a subset of points.
+The usage of only a subset of the input points is motivated by the reduction of computational cost.
+However, the full pointcloud is still used to generate the global feature vector which allows to exploit all available spatial information.
 
 % training
-Due to it's pointcloud and the assumption that we can only a single depth image to capture a partial pointcloud of the environment based anatomy the traini
-Instead they utilized ACRONYM dataset and the Shapenet dataset
-The training procedure can be summarized as follows:
-\begin{enumerate}
-\item Generating a simulated scene with objects (and annotated grasps) of from the ACRONYM dataset in random stable poses.
-\item Filter grasps which collide with oder objects in the scene
-\item Create a pointcloud from a single depth image of the scene
-\item The network is trained on the Shapenet dataset to predict the grasp pose.
-% The grasp axis can be oriented in arbitrary direction
+The training of the network was done by using simulated scenes which were populated with objects from the ACRONYM dataset \cite{}.
+This dataset contains a collection of 3D object meshes together with a number of grasp annotations.
+The objects were placed in different random stable poses and the ground truth grasps were filtered so that only non colliding grasps remain.
+In a next step a single depth image was rendered from each scene and is used to obtain a partial pointcloud representation of the scene.
+The predicted grasp candidates are then compared to the ground truth grasps by calculating the distance between the predicted contact point and
+the closest contact point in the ground truth grasp.
+If this distance is below a predefined threshold of 5mm the the loss is computed as a combination of the different losses of the heads.
+Otherwise only binary cross entropy loss is used to train on the quality of the grasp candidates.
+During inference the predicted grasps can be filered according to a segmentation mask to limit the returned grraps to the object of interest.
+% -- done
 
 
 \subsection{GGCNN}
 Siimilarly to the \textit{GrConvNet} algorithm the \textit{GGCNN} algorithm based on image inputs and returns image based grasp representations.
-\subsection{Comparison}
